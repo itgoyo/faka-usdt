@@ -3,6 +3,52 @@ import crypto from 'node:crypto'
 import axios from 'axios'
 import { prisma } from '@/lib/prisma'
 
+export async function GET(request: NextRequest) {
+  try {
+    const sessionId = request.nextUrl.searchParams.get('sessionId')
+
+    if (!sessionId) {
+      return NextResponse.json({ error: 'Missing sessionId' }, { status: 400 })
+    }
+
+    const order = await prisma.order.findFirst({
+      where: {
+        sessionId,
+        status: {
+          in: ['pending', 'paid']
+        }
+      },
+      include: {
+        card: true
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    })
+
+    if (!order) {
+      return NextResponse.json({ order: null })
+    }
+
+    return NextResponse.json({
+      order: {
+        id: order.id,
+        status: order.status,
+        createdAt: order.createdAt,
+        amount: order.amount,
+        walletAddress: order.walletAddress,
+        paymentUrl: order.paymentUrl,
+        card: {
+          price: order.card.price
+        }
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching order:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
+
 // 从环境变量获取配置
 const API_TOKEN = process.env.API_TOKEN || 'Abc.12345'
 const API_URL = process.env.API_URL || 'https://pay.tg10000.com/api/v1/order/create-transaction'
@@ -105,6 +151,19 @@ export async function POST(request: NextRequest) {
         console.log('订单创建成功!')
         console.log('实际支付金额:', paymentData.actual_amount)
         console.log('钱包地址:', paymentData.token)
+
+        // 保存订单到数据库
+        await prisma.order.create({
+          data: {
+            id: orderId,
+            sessionId,
+            cardId: parseInt(cardId),
+            amount: paymentData.actual_amount,
+            walletAddress: paymentData.token,
+            paymentUrl: paymentData.payment_url,
+            status: 'pending',
+          }
+        })
 
         return NextResponse.json({
           orderId,

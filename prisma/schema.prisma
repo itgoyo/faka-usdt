@@ -26,13 +26,16 @@ model Card {
 }
 
 model Order {
-  id        String   @id @default(cuid())
-  cardId    Int
-  status    String   @default("pending") // pending, paid, delivered
-  paymentTx String?  // Transaction hash
-  sessionId String   // For tracking user session
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String   @id
+  cardId        Int
+  status        String   @default("pending") // pending, paid, delivered
+  paymentTx     String?  // Transaction hash
+  sessionId     String   // For tracking user session
+  amount        Float    // 支付金额
+  walletAddress String   // 钱包地址
+  paymentUrl    String   @db.Text // 支付链接
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   card Card @relation(fields: [cardId], references: [id])
 }
