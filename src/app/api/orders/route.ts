@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'node:crypto'
 import axios from 'axios'
 import { prisma } from '@/lib/prisma'
+import { notifyOrderCreated } from '@/lib/notify'
 
 export async function GET(request: NextRequest) {
   try {
@@ -153,7 +154,7 @@ export async function POST(request: NextRequest) {
         console.log('钱包地址:', paymentData.token)
 
         // 保存订单到数据库
-        await prisma.order.create({
+        const newOrder = await prisma.order.create({
           data: {
             id: orderId,
             sessionId,
@@ -164,6 +165,16 @@ export async function POST(request: NextRequest) {
             status: 'pending',
           }
         })
+
+        console.log('订单已保存到数据库:', newOrder.id)
+
+        // 订单创建成功推送
+        console.log('准备发送订单创建通知...')
+        notifyOrderCreated({
+          orderId,
+          amount: paymentData.actual_amount,
+          cardTitle: card.title
+        }).catch(e => console.error('推送失败:', e))
 
         return NextResponse.json({
           orderId,

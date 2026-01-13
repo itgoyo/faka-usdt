@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import axios from 'axios'
 import { prisma } from '@/lib/prisma'
+import { notifyOrderPaid } from '@/lib/notify'
 
 const TRON_API_URL = process.env.TRON_API_URL!
 
@@ -67,6 +68,13 @@ export async function GET(
                   },
                 }),
               ])
+
+              // 支付成功推送
+              notifyOrderPaid({
+                orderId: order.id,
+                amount: order.amount,
+                cardTitle: order.card.title
+              }).catch(e => console.error('推送失败:', e))
 
               return NextResponse.json({ cardCode })
             }

@@ -39,3 +39,20 @@ model Order {
 
   card Card @relation(fields: [cardId], references: [id])
 }
+
+model Settings {
+  id    Int    @id @default(1)
+  // Server酱配置
+  serverChanKey     String @default("")
+  // 邮箱配置
+  emailHost         String @default("")
+  emailPort         Int    @default(465)
+  emailUser         String @default("")
+  emailPass         String @default("")
+  emailTo           String @default("")
+  // 推送开关
+  notifyOnCreate    Boolean @default(false)
+  notifyOnPaid      Boolean @default(false)
+  
+  updatedAt DateTime @updatedAt
+}

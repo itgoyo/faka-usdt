@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import QRCode from 'qrcode'
+import * as QRCode from 'qrcode'
 
 export default function BuyPage() {
   const params = useParams()
@@ -18,6 +18,7 @@ export default function BuyPage() {
   const [timeLeft, setTimeLeft] = useState<number>(10 * 60)
   const [countdownActive, setCountdownActive] = useState(false)
   const [orderExpired, setOrderExpired] = useState(false)
+  const [error, setError] = useState<string>('')
 
   useEffect(() => {
     if (cardId) {
@@ -97,6 +98,7 @@ export default function BuyPage() {
 
   const createOrder = async () => {
     try {
+      setError('')
       const sessionId = localStorage.getItem('sessionId') || generateSessionId()
       localStorage.setItem('sessionId', sessionId)
 
@@ -121,9 +123,16 @@ export default function BuyPage() {
         setTimeLeft(10 * 60)
         setCountdownActive(true)
         checkPayment(data.orderId)
+      } else {
+        const errorData = await response.json()
+        setError(errorData.error || '订单创建失败')
+        console.error('Error creating order:', errorData)
       }
     } catch (error) {
       console.error('Error creating order:', error)
+      setError('网络错误，请稍后重试')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -226,6 +235,42 @@ export default function BuyPage() {
               <Link
                 href="/"
                 className="inline-flex items-center px-6 py-3 bg-gray-600 text-white font-medium rounded-lg hover:bg-gray-700 transition-colors"
+              >
+                返回首页
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-100 flex items-center justify-center px-4">
+        <div className="bg-white rounded-xl shadow-xl p-8 max-w-md w-full border border-red-200">
+          <div className="text-center">
+            <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-4">
+              <svg className="h-8 w-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </div>
+            <h1 className="text-2xl font-bold text-red-800 mb-2">订单创建失败</h1>
+            <p className="text-gray-600 mb-6">{error}</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setError('')
+                  setLoading(true)
+                  initOrder()
+                }}
+                className="flex-1 py-3 px-4 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors"
+              >
+                重试
+              </button>
+              <Link
+                href="/"
+                className="flex-1 py-3 px-4 bg-gray-600 text-white font-medium rounded-lg hover:bg-gray-700 transition-colors text-center"
               >
                 返回首页
               </Link>
