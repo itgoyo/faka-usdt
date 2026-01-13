@@ -53,7 +53,7 @@ npm run dev
 确保 `.env` 文件包含正确的配置：
 ```env
 API_TOKEN="你的支付API密钥"
-API_URL="https://pay.tg10000.com/api/v1/order/create-transaction"
+API_URL="https://pay.pay.com/api/v1/order/create-transaction"
 TRON_API_URL="https://api.trongrid.io/v1/accounts/钱包地址/transactions/trc20"
 ```
 
@@ -111,7 +111,7 @@ TRON_API_URL="https://api.trongrid.io/v1/accounts/钱包地址/transactions/trc2
 ```env
 DATABASE_URL="mysql://user:password@localhost:3306/faka_usdt"
 API_TOKEN="your_payment_api_token"
-API_URL="https://pay.tg10000.com/api/v1/order/create-transaction"
+API_URL="https://pay.pay.com/api/v1/order/create-transaction"
 NOTIFY_URL="http://your-domain.com/notify"
 REDIRECT_URL="http://your-domain.com/success"
 TRON_API_URL="https://api.trongrid.io/v1/accounts/TRON_ADDRESS/transactions/trc20"

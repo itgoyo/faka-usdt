@@ -100,26 +100,6 @@ export default function Home() {
             ))}
           </div>
         )}
-
-        <div className="mt-16 text-center">
-          <div className="bg-white rounded-lg shadow-md p-6 max-w-md mx-auto">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              管理员入口
-            </h3>
-            <p className="text-gray-600 mb-4 text-sm">
-              上传和管理卡密商品
-            </p>
-            <Link
-              href="/admin"
-              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-indigo-600 bg-indigo-50 hover:bg-indigo-100 transition-colors"
-            >
-              进入后台
-              <svg className="ml-2 -mr-1 w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd"></path>
-              </svg>
-            </Link>
-          </div>
-        </div>
       </div>
     </div>
   )
