@@ -14,6 +14,7 @@ export default function BuyPage() {
   const [loading, setLoading] = useState(true)
   const [checking, setChecking] = useState(false)
   const [cardCode, setCardCode] = useState<string | null>(null)
+  const [copied, setCopied] = useState<'address' | 'card' | null>(null)
 
   useEffect(() => {
     if (cardId) {
@@ -137,13 +138,17 @@ export default function BuyPage() {
 
             <div className="text-center">
               <button
-                onClick={() => navigator.clipboard.writeText(cardCode)}
+                onClick={() => {
+                  navigator.clipboard.writeText(cardCode)
+                  setCopied('card')
+                  setTimeout(() => setCopied(null), 2000)
+                }}
                 className="inline-flex items-center px-6 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors mr-3"
               >
                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
                 </svg>
-                复制卡密
+                {copied === 'card' ? '已复制！' : '复制卡密'}
               </button>
               <Link
                 href="/"
@@ -229,17 +234,26 @@ export default function BuyPage() {
               </div>
             )}
 
-            <div className="bg-gray-100 rounded-lg p-4 mb-4">
+            <div className="bg-gray-100 rounded-lg p-4 mb-4 relative">
               <p className="text-xs text-gray-500 mb-2">钱包地址</p>
               <p className="text-xs font-mono break-all text-gray-800">
                 {paymentData.walletAddress}
               </p>
               <button
-                onClick={() => navigator.clipboard.writeText(paymentData.walletAddress)}
+                onClick={() => {
+                  navigator.clipboard.writeText(paymentData.walletAddress)
+                  setCopied('address')
+                  setTimeout(() => setCopied(null), 2000)
+                }}
                 className="mt-2 text-xs bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded transition-colors"
               >
                 复制地址
               </button>
+              {copied === 'address' && (
+                <div className="absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded">
+                  已复制！
+                </div>
+              )}
             </div>
           </div>
 
