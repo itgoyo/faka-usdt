@@ -1,0 +1,38 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Card {
+  id             Int      @id @default(autoincrement())
+  title          String
+  content        Json     // Array of card codes
+  price          Float    @default(199.0)
+  availableCount Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  orders Order[]
+}
+
+model Order {
+  id        String   @id @default(cuid())
+  cardId    Int
+  status    String   @default("pending") // pending, paid, delivered
+  paymentTx String?  // Transaction hash
+  sessionId String   // For tracking user session
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  card Card @relation(fields: [cardId], references: [id])
+}
