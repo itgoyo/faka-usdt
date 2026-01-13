@@ -1,16 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-
-// 临时内存存储，生产环境应使用数据库
-let mockCards: any[] = [
-  {
-    id: 1,
-    title: '测试卡密商品',
-    price: 199,
-    availableCount: 5,
-    createdAt: new Date().toISOString(),
-    content: ['test-code-1', 'test-code-2', 'test-code-3', 'test-code-4', 'test-code-5']
-  }
-]
+import { prisma } from '@/lib/prisma'
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,16 +9,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
     }
 
-    const newCard = {
-      id: mockCards.length + 1,
-      title,
-      content,
-      price: price || 199,
-      availableCount: content.length,
-      createdAt: new Date().toISOString(),
-    }
-
-    mockCards.push(newCard)
+    const newCard = await prisma.card.create({
+      data: {
+        title,
+        content: content as any,
+        price: price || 199,
+        availableCount: content.length,
+      },
+    })
 
     return NextResponse.json(newCard)
   } catch (error) {
@@ -40,13 +27,23 @@ export async function POST(request: NextRequest) {
 
 export async function GET() {
   try {
-    const cards = mockCards.filter(card => card.availableCount > 0).map(card => ({
-      id: card.id,
-      title: card.title,
-      price: card.price,
-      availableCount: card.availableCount,
-      createdAt: card.createdAt,
-    }))
+    const cards = await prisma.card.findMany({
+      where: {
+        availableCount: {
+          gt: 0,
+        },
+      },
+      select: {
+        id: true,
+        title: true,
+        price: true,
+        availableCount: true,
+        createdAt: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    })
 
     return NextResponse.json(cards)
   } catch (error) {

@@ -1,18 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'node:crypto'
 import axios from 'axios'
-
-// 临时模拟数据
-const mockCards = [
-  {
-    id: 1,
-    title: '测试卡密商品',
-    price: 199,
-    availableCount: 5,
-    createdAt: new Date().toISOString(),
-    content: ['test-code-1', 'test-code-2', 'test-code-3', 'test-code-4', 'test-code-5']
-  }
-]
+import { prisma } from '@/lib/prisma'
 
 // 从环境变量获取配置
 const API_TOKEN = process.env.API_TOKEN || 'Abc.12345'
@@ -53,7 +42,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing cardId or sessionId' }, { status: 400 })
     }
 
-    const card = mockCards.find(c => c.id === parseInt(cardId))
+    const card = await prisma.card.findUnique({
+      where: { id: parseInt(cardId) },
+    })
 
     if (!card) {
       return NextResponse.json({ error: 'Card not found' }, { status: 404 })
@@ -70,7 +61,7 @@ export async function POST(request: NextRequest) {
 
     const params = {
       order_id: orderId,
-      amount: amount,  // 发送数字格式
+      amount: amount,
       notify_url: NOTIFY_URL,
       redirect_url: REDIRECT_URL,
     }
