@@ -1,7 +1,8 @@
 # 自动发卡系统
 
 基于Next.js的自动发卡网站，支持USDT支付。
-![](https://cdn.jsdelivr.net/gh/AZeC4/img@master/img/Snipaste_2026-01-13_18-39-24.png)π
+
+![](https://cdn.jsdelivr.net/gh/AZeC4/img@master/img/Snipaste_2026-01-13_18-39-24.png)
 
 ## 功能特点
 
