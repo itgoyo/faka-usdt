@@ -4,6 +4,10 @@
 
 ![](https://cdn.jsdelivr.net/gh/AZeC4/img@master/img/Snipaste_2026-01-13_18-39-24.png)
 
+## Epusdt
+
+对接[Epusdt](https://github.com/assimon/epusdt)开源优雅的跨平台usdt收付中间件
+
 ## 功能特点
 
 - 管理员后台上传卡密
