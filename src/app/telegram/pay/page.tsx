@@ -19,6 +19,7 @@ function PayContent() {
   const [timeLeft, setTimeLeft] = useState<number>(10 * 60)
   const [orderExpired, setOrderExpired] = useState(false)
   const [error, setError] = useState<string>('')
+  const [testLoading, setTestLoading] = useState(false)
 
   useEffect(() => {
     if (orderId) {
@@ -100,6 +101,25 @@ function PayContent() {
     const mins = Math.floor(seconds / 60)
     const secs = seconds % 60
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+  }
+
+  // 测试支付（仅开发环境）
+  const handleTestPay = async () => {
+    if (!orderId) return
+    setTestLoading(true)
+    try {
+      const res = await fetch(`/api/telegram/${orderId}/test-pay`, { method: 'POST' })
+      const data = await res.json()
+      if (data.success) {
+        setSuccess(true)
+      } else {
+        alert(data.error || '测试支付失败')
+      }
+    } catch (err) {
+      alert('测试支付请求失败')
+    } finally {
+      setTestLoading(false)
+    }
   }
 
   if (loading) {
@@ -310,6 +330,17 @@ function PayContent() {
                   支付完成后将自动开通服务，请勿关闭此页面
                 </p>
               </div>
+            )}
+
+            {/* 测试模式按钮 - 通过 .env 中的 NEXT_PUBLIC_TEST_MODE 控制 */}
+            {process.env.NEXT_PUBLIC_TEST_MODE === 'true' && !orderExpired && (
+              <button
+                onClick={handleTestPay}
+                disabled={testLoading}
+                className="w-full py-3 px-4 bg-orange-500 text-white font-medium rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50"
+              >
+                {testLoading ? '处理中...' : '[测试] 模拟支付成功'}
+              </button>
             )}
           </div>
 
