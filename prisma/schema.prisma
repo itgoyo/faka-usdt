@@ -56,3 +56,19 @@ model Settings {
   
   updatedAt DateTime @updatedAt
 }
+
+// Telegram转发服务订单
+model TelegramOrder {
+  id            String   @id
+  sourceChannel String   // 监听的频道/群组
+  targetChannel String   // 转发到的频道
+  textReplaces  Json     @default("[]") // 文本替换规则 [{from, to}]
+  keywords      String   @default("") // 过滤关键字，空格分隔
+  amount        Float    // 支付金额
+  walletAddress String   // 钱包地址
+  paymentUrl    String   @db.Text // 支付链接
+  paymentTx     String?  // 交易哈希
+  status        String   @default("pending") // pending, paid
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
