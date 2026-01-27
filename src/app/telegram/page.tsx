@@ -15,6 +15,8 @@ export default function TelegramPage() {
   const [targetChannel, setTargetChannel] = useState('')
   const [textReplaces, setTextReplaces] = useState<TextReplace[]>([{ id: 1, from: '', to: '' }])
   const [keywords, setKeywords] = useState('')
+  const [telegramId, setTelegramId] = useState('')
+  const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -43,6 +45,10 @@ export default function TelegramPage() {
       setError('请输入转发到的频道地址')
       return
     }
+    if (!telegramId.trim() && !email.trim()) {
+      setError('电报ID和邮箱地址至少填写一个')
+      return
+    }
 
     setLoading(true)
     setError('')
@@ -55,7 +61,9 @@ export default function TelegramPage() {
         sourceChannel: sourceChannel.trim(),
         targetChannel: targetChannel.trim(),
         textReplaces: validReplaces.map(item => ({ from: item.from, to: item.to })),
-        keywords: keywords.trim()
+        keywords: keywords.trim(),
+        telegramId: telegramId.trim(),
+        email: email.trim()
       }
 
       // 保存到sessionStorage以便支付页面使用
@@ -111,8 +119,15 @@ export default function TelegramPage() {
                   必须将以下两个Bot拉入您的频道，并给予管理员所有权限：
                 </p>
                 <div className="bg-red-100 rounded-lg p-4 mt-3">
-                  <p className="text-xl font-mono font-bold text-red-900 mb-2">@xntb02bot</p>
-                  <p className="text-xl font-mono font-bold text-red-900">@xntb09</p>
+                  <p className="text-xl font-mono font-bold text-red-900 mb-2">@xntb02bot和@xntb09</p>
+                  <a
+                    href="https://t.me/tgxiunv"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-block text-base font-medium text-red-700 hover:text-red-900 underline cursor-pointer"
+                  >
+                    (添加不了联系客服)
+                  </a>
                 </div>
                 <p className="mt-3 text-sm">
                   如未正确添加Bot并授权管理员权限，转发服务将无法正常工作！
@@ -214,7 +229,7 @@ export default function TelegramPage() {
           </div>
 
           {/* 关键字过滤 */}
-          <div className="mb-8">
+          <div className="mb-6">
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               关键字过滤 <span className="text-gray-400">(可选)</span>
             </label>
@@ -230,16 +245,47 @@ export default function TelegramPage() {
             </p>
           </div>
 
+          {/* 联系方式 - 至少填写一个 */}
+          <div className="mb-8">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              联系方式 <span className="text-red-500">*</span>
+              <span className="text-gray-500 text-xs ml-2">(至少填写一个)</span>
+            </label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <input
+                  type="text"
+                  value={telegramId}
+                  onChange={(e) => setTelegramId(e.target.value)}
+                  placeholder="@your_telegram_id"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                />
+                <p className="mt-1 text-sm text-gray-500">电报ID</p>
+              </div>
+              <div>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="your@email.com"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                />
+                <p className="mt-1 text-sm text-gray-500">邮箱地址</p>
+              </div>
+            </div>
+          </div>
+
           {/* 价格说明 */}
           <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-6 mb-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600 mb-1">服务费用</p>
-                <p className="text-3xl font-bold text-purple-700">19.9 USDT</p>
+                <p className="text-3xl font-bold text-purple-700">约 5 USDT</p>
+                <p className="text-xs text-gray-500 mt-1">实际金额以支付页面为准</p>
               </div>
               <div className="text-right text-sm text-gray-500">
                 <p>支付方式: TRC20</p>
-                <p>有效期: 永久</p>
+                <p>有效期: 一个月</p>
               </div>
             </div>
           </div>
@@ -262,6 +308,21 @@ export default function TelegramPage() {
               '立即购买 - 前往支付'
             )}
           </button>
+
+          {/* 联系客服 */}
+          <a
+            href="https://t.me/tgxiunv"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block w-full text-center py-3 px-6 bg-white border-2 border-purple-600 text-purple-600 font-medium rounded-lg hover:bg-purple-50 transition-all mt-4"
+          >
+            <span className="flex items-center justify-center">
+              <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.18.717-.962 4.084-1.362 5.411-.168.56-.505 1.473-.884 1.573-.38.1-.633.066-.917-.146-.21-.157-.433-.399-.607-.593l-.862-.88c-.505-.517-1.108-.888-1.108-.888s-.172-.078-.157-.205c.01-.074.054-.126.054-.126l.848-.809c.505-.483 1.071-1.004 1.435-1.371.364-.368.725-.766.725-1.005 0-.24-.136-.35-.315-.35-.18 0-.458.132-.726.274l-2.055 1.074c-.505.263-1.001.523-1.001.523s-.505.263-.883.35c-.379.087-.758.087-.758.087s-.631-.044-.947-.175c-.316-.13-.631-.262-.631-.262s-.315-.13-.44-.262c-.126-.131-.063-.328-.063-.328s.063-.131.315-.35l6.12-5.89c.252-.241.631-.372 1.01-.372.379 0 .884.218 1.01.567.125.35.125.655-.126 1.353z"/>
+              </svg>
+              联系客服
+            </span>
+          </a>
         </div>
       </div>
     </div>

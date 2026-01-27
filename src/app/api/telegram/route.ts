@@ -16,17 +16,32 @@ function generateSignature(params: any, token: string): string {
   return crypto.createHash('md5').update(signString).digest('hex').toLowerCase()
 }
 
+// 生成唯一的支付金额（基础价格 + 随机小数）
+// 这样可以通过金额区分不同的订单，避免混淆
+function generateUniqueAmount(basePrice: number): number {
+  // 生成 0.001 到 0.099 之间的随机数，保留3位小数
+  const randomDecimal = Math.floor(Math.random() * 99) + 1
+  const uniqueAmount = basePrice + (randomDecimal / 1000)
+  // 保留3位小数
+  return Math.round(uniqueAmount * 1000) / 1000
+}
+
 // 创建Telegram订单
 export async function POST(request: NextRequest) {
   try {
-    const { sourceChannel, targetChannel, textReplaces, keywords } = await request.json()
+    const { sourceChannel, targetChannel, textReplaces, keywords, telegramId, email } = await request.json()
 
     if (!sourceChannel || !targetChannel) {
       return NextResponse.json({ error: '监听频道和转发频道为必填项' }, { status: 400 })
     }
 
+    if (!telegramId && !email) {
+      return NextResponse.json({ error: '电报ID和邮箱地址至少填写一个' }, { status: 400 })
+    }
+
     const orderId = `TG${Date.now()}`
-    const amount = TELEGRAM_SERVICE_PRICE + 0.01
+    // 生成唯一的支付金额，避免订单混淆
+    const amount = generateUniqueAmount(TELEGRAM_SERVICE_PRICE)
 
     // 调用支付API创建订单
     const params = {
@@ -47,7 +62,7 @@ export async function POST(request: NextRequest) {
     if (response.data && response.data.status_code === 200) {
       const paymentData = response.data.data
 
-      // 保存订单到数据库
+      // 保存订单到数据库，使用我们生成的金额（不使用API返回的金额）
       await prisma.telegramOrder.create({
         data: {
           id: orderId,
@@ -55,18 +70,20 @@ export async function POST(request: NextRequest) {
           targetChannel,
           textReplaces: textReplaces || [],
           keywords: keywords || '',
-          amount: paymentData.actual_amount,
+          telegramId: telegramId || '',
+          email: email || '',
+          amount: amount, // 使用我们生成的唯一金额
           walletAddress: paymentData.token,
           paymentUrl: paymentData.payment_url,
           status: 'pending',
         }
       })
 
-      console.log(`[Telegram订单] 创建成功: ${orderId}`)
+      console.log(`[Telegram订单] 创建成功: ${orderId}, 金额: ${amount} USDT`)
 
       return NextResponse.json({
         orderId,
-        amount: paymentData.actual_amount,
+        amount: amount, // 返回我们生成的唯一金额
         walletAddress: paymentData.token,
         paymentUrl: paymentData.payment_url,
       })

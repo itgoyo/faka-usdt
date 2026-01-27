@@ -40,16 +40,26 @@ function writeToDataFile(order: any) {
       ? textReplaces.map((r: any) => `${r.from} -> ${r.to}`).join('; ')
       : '无'
 
+    const createdTime = new Date(order.createdAt).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })
+    const expireTime = order.expireAt 
+      ? new Date(order.expireAt).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })
+      : '未设置'
+
     const content = `
 ========================================
 订单号: ${order.id}
-时间: ${new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}
+下单时间: ${createdTime}
+到期时间: ${expireTime}
+----------------------------------------
+电报ID: ${order.telegramId || '未填写'}
+邮箱: ${order.email || '未填写'}
 ----------------------------------------
 监听频道: ${order.sourceChannel}
 转发到: ${order.targetChannel}
 文本替换: ${replaceStr}
 过滤关键字: ${order.keywords || '无'}
 支付金额: ${order.amount} USDT
+备注: 测试订单
 ========================================
 
 `
@@ -87,40 +97,56 @@ export async function POST(
       return NextResponse.json({ error: '订单已支付', status: order.status })
     }
 
+    // 计算到期时间（下单时间 + 31天）
+    const expireAt = new Date(order.createdAt)
+    expireAt.setDate(expireAt.getDate() + 31)
+
     // 更新订单状态为已支付
-    await prisma.telegramOrder.update({
+    const updatedOrder = await prisma.telegramOrder.update({
       where: { id: orderId },
       data: { 
         status: 'paid',
-        paymentTx: 'TEST_TX_' + Date.now()
+        paymentTx: 'TEST_TX_' + Date.now(),
+        expireAt: expireAt
       },
     })
 
     // 写入data.txt
-    writeToDataFile(order)
+    writeToDataFile(updatedOrder)
 
     // 构建Server酱通知内容
-    const textReplaces = order.textReplaces as any[] || []
+    const textReplaces = updatedOrder.textReplaces as any[] || []
     const replaceStr = textReplaces.length > 0 
       ? textReplaces.map((r: any) => `${r.from} -> ${r.to}`).join('\n')
       : '无'
+
+    const createdTime = new Date(updatedOrder.createdAt).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })
+    const expireTime = updatedOrder.expireAt 
+      ? new Date(updatedOrder.expireAt).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })
+      : '未设置'
 
     const title = `[测试] Telegram转发订单支付成功`
     const content = `
 ## 订单信息
 
-- **订单号**: ${order.id}
-- **支付金额**: ${order.amount} USDT
-- **支付时间**: ${new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}
+- **订单号**: ${updatedOrder.id}
+- **支付金额**: ${updatedOrder.amount} USDT
+- **下单时间**: ${createdTime}
+- **到期时间**: ${expireTime}
 - **备注**: 测试支付
+
+## 用户联系方式
+
+- **电报ID**: ${updatedOrder.telegramId || '未填写'}
+- **邮箱**: ${updatedOrder.email || '未填写'}
 
 ## 配置详情
 
-- **监听频道**: ${order.sourceChannel}
-- **转发到**: ${order.targetChannel}
+- **监听频道**: ${updatedOrder.sourceChannel}
+- **转发到**: ${updatedOrder.targetChannel}
 - **文本替换规则**: 
 ${replaceStr}
-- **过滤关键字**: ${order.keywords || '无'}
+- **过滤关键字**: ${updatedOrder.keywords || '无'}
 
 ---
 请尽快配置Bot完成服务开通

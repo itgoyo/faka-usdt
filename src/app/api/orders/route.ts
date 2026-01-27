@@ -77,6 +77,16 @@ function generateSignature(params: any, token: string): string {
   return signature.toLowerCase()
 }
 
+// 生成唯一的支付金额（基础价格 + 随机小数）
+// 这样可以通过金额区分不同的订单，避免混淆
+function generateUniqueAmount(basePrice: number): number {
+  // 生成 0.001 到 0.099 之间的随机数，保留3位小数
+  const randomDecimal = Math.floor(Math.random() * 99) + 1
+  const uniqueAmount = basePrice + (randomDecimal / 1000)
+  // 保留3位小数
+  return Math.round(uniqueAmount * 1000) / 1000
+}
+
 export async function POST(request: NextRequest) {
   console.log('=== 收到订单创建请求 ===')
 
@@ -102,7 +112,8 @@ export async function POST(request: NextRequest) {
     }
 
     const orderId = Date.now().toString()
-    const amount = card.price + 0.01
+    // 生成唯一的支付金额，避免订单混淆
+    const amount = generateUniqueAmount(card.price)
 
     console.log('订单信息:', { orderId, amount })
 
@@ -153,32 +164,32 @@ export async function POST(request: NextRequest) {
         console.log('实际支付金额:', paymentData.actual_amount)
         console.log('钱包地址:', paymentData.token)
 
-        // 保存订单到数据库
+        // 保存订单到数据库，使用我们生成的金额（不使用API返回的金额）
         const newOrder = await prisma.order.create({
           data: {
             id: orderId,
             sessionId,
             cardId: parseInt(cardId),
-            amount: paymentData.actual_amount,
+            amount: amount, // 使用我们生成的唯一金额
             walletAddress: paymentData.token,
             paymentUrl: paymentData.payment_url,
             status: 'pending',
           }
         })
 
-        console.log('订单已保存到数据库:', newOrder.id)
+        console.log('订单已保存到数据库:', newOrder.id, '金额:', amount, 'USDT')
 
         // 订单创建成功推送
         console.log('准备发送订单创建通知...')
         notifyOrderCreated({
           orderId,
-          amount: paymentData.actual_amount,
+          amount: amount, // 使用我们生成的唯一金额
           cardTitle: card.title
         }).catch(e => console.error('推送失败:', e))
 
         return NextResponse.json({
           orderId,
-          amount: paymentData.actual_amount,
+          amount: amount, // 返回我们生成的唯一金额
           walletAddress: paymentData.token,
           paymentUrl: paymentData.payment_url,
         })

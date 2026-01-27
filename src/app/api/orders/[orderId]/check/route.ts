@@ -30,7 +30,8 @@ export async function GET(
     }
 
     const cardContent = order.card.content as string[]
-    const expectedAmount = order.card.price + 0.01
+    // 使用订单保存的金额，而不是重新计算
+    const expectedAmount = order.amount
     const orderTime = order.createdAt
 
     try {
@@ -48,8 +49,9 @@ export async function GET(
           const txValue = parseFloat(tx.value || '0') / 1e6
           const txTime = new Date(tx.block_timestamp || 0)
 
+          // 使用更精确的金额匹配（误差小于0.001），确保订单唯一性
           if (
-            Math.abs(txValue - expectedAmount) < 0.01 &&
+            Math.abs(txValue - expectedAmount) < 0.001 &&
             txTime >= orderTime &&
             txTime <= new Date(orderTime.getTime() + 10 * 60 * 1000)
           ) {

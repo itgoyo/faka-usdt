@@ -64,11 +64,14 @@ model TelegramOrder {
   targetChannel String   // 转发到的频道
   textReplaces  Json     @default("[]") // 文本替换规则 [{from, to}]
   keywords      String   @default("") // 过滤关键字，空格分隔
+  telegramId    String   @default("") // 用户电报ID
+  email         String   @default("") // 用户邮箱
   amount        Float    // 支付金额
   walletAddress String   // 钱包地址
   paymentUrl    String   @db.Text // 支付链接
   paymentTx     String?  // 交易哈希
   status        String   @default("pending") // pending, paid
+  expireAt      DateTime? // 服务到期时间
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
